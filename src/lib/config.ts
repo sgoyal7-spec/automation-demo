@@ -2,6 +2,7 @@ export const config = {
   appUrl: process.env.APP_URL ?? 'http://localhost:3000',
   slack: {
     botToken: process.env.SLACK_BOT_TOKEN ?? '',
+    webhookUrl: process.env.SLACK_WEBHOOK_URL ?? '',
     signingSecret: process.env.SLACK_SIGNING_SECRET ?? '',
     channelId: process.env.SLACK_CHANNEL_ID ?? '',
   },
@@ -14,4 +15,7 @@ export const config = {
   schedulerIntervalSeconds: Number(process.env.SCHEDULER_INTERVAL_SECONDS ?? 60),
 }
 
-export const slackEnabled = () => Boolean(config.slack.botToken && config.slack.channelId)
+/** Bot token + channel gives full features (buttons, thread updates). A webhook alone gives one-way alerts. */
+export const slackMode = (): 'bot' | 'webhook' | 'off' =>
+  config.slack.botToken && config.slack.channelId ? 'bot' : config.slack.webhookUrl ? 'webhook' : 'off'
+export const slackEnabled = () => slackMode() !== 'off'

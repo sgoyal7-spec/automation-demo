@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
-import { config, slackEnabled } from './config'
+import { config, slackMode } from './config'
 import type { ReplyAnalysis } from './types'
 
 type Block = Record<string, unknown>
@@ -21,9 +21,21 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 async function slackApi(method: string, body: Record<string, unknown>) {
-  if (!slackEnabled()) {
+  const mode = slackMode()
+  if (mode === 'off') {
     console.log(`[slack:disabled] ${method}`, JSON.stringify(body).slice(0, 300))
     return { ok: false, ts: undefined as string | undefined }
+  }
+  if (mode === 'webhook') {
+    // Incoming webhooks accept blocks but cannot update messages or receive button clicks.
+    if (method !== 'chat.postMessage') return { ok: false, ts: undefined as string | undefined }
+    const res = await fetch(config.slack.webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: body.text, blocks: body.blocks }),
+    })
+    if (!res.ok) console.error('[slack] webhook failed:', res.status, await res.text())
+    return { ok: res.ok, ts: undefined as string | undefined }
   }
   const res = await fetch(`https://slack.com/api/${method}`, {
     method: 'POST',
@@ -45,6 +57,7 @@ const stars = (n: number) => ':star:'.repeat(n) + ':black_small_square:'.repeat(
 
 /** Use case 1 + 2: new reply alert with AI analysis and action buttons. */
 export function replyAlertBlocks(lead: LeadForSlack, replyText: string, a: ReplyAnalysis, withActions = true): Block[] {
+  if (slackMode() !== 'bot') withActions = false
   const p = lead.prospect
   const blocks: Block[] = [
     { type: 'header', text: { type: 'plain_text', text: `New LinkedIn reply from ${p.name}` } },
@@ -110,7 +123,7 @@ export function prepBriefBlocks(lead: LeadForSlack, bookedBy: string, when: stri
 /** Use case 4: overdue follow-up escalation. */
 export function escalationBlocks(lead: LeadForSlack, minutesIdle: number): Block[] {
   const p = lead.prospect
-  return [
+  const blocks: Block[] = [
     {
       type: 'section',
       text: {
@@ -127,6 +140,7 @@ export function escalationBlocks(lead: LeadForSlack, minutesIdle: number): Block
       ],
     },
   ]
+  return slackMode() === 'bot' ? blocks : blocks.slice(0, 1)
 }
 
 /** Use case 5: daily digest. */

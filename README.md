@@ -39,7 +39,11 @@ npm run dev                     # http://localhost:3000
 
 Without Slack credentials the app logs the messages it would have sent instead of failing.
 
-## Slack setup (10 minutes)
+## Slack setup
+
+**Quick mode (2 minutes, alerts only):** in the channel, open *Integrations → Add an app → Incoming WebHooks → Add to Slack*, pick the channel, and put the webhook URL in `SLACK_WEBHOOK_URL`. Buttons are hidden in this mode because a webhook cannot receive clicks.
+
+**Full mode (10 minutes, buttons + thread updates):**
 
 1. Create a free Slack workspace and a channel, e.g. `#sales-alerts`.
 2. api.slack.com/apps → Create New App → From scratch.
