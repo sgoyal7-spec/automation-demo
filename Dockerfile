@@ -12,13 +12,13 @@ RUN mkdir -p /app/seed && npx prisma generate && npx prisma db push --skip-gener
 FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0
-# uid 1000 matches the host user that owns the bind-mounted ./data directory
-RUN addgroup -g 1000 -S app && adduser -u 1000 -S app -G app && mkdir -p /app/data && chown app:app /app/data
+# The image's built-in `node` user is uid 1000, matching the host user that owns the bind-mounted ./data directory.
+RUN mkdir -p /app/data && chown node:node /app/data
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
 COPY --from=build /app/seed/demo.db ./seed/demo.db
 COPY deploy/entrypoint.sh ./entrypoint.sh
-USER app
+USER node
 EXPOSE 3000
 ENTRYPOINT ["sh", "./entrypoint.sh"]
