@@ -39,11 +39,14 @@ export async function POST(req: Request) {
   const threadTs = ev.thread_ts ?? ev.ts
   const actor = ev.user ? `<@${ev.user}>` : 'someone'
 
+  console.log(`[assistant] mention from ${actor}: ${question.slice(0, 120)}`)
   // Acknowledge now; think and reply after the response is sent (Slack's 3-second rule).
   after(async () => {
+    const t0 = Date.now()
     try {
       const answer = question ? await askAssistant(question, actor) : `Hi, I'm ${config.assistantName}. Ask me things like "who replied today?", "how many meetings do I have?", "any overdue follow-ups?", or "book meetings with everyone who agreed".`
-      await postMessage([{ type: 'section', text: { type: 'mrkdwn', text: answer } }], answer, threadTs)
+      const res = await postMessage([{ type: 'section', text: { type: 'mrkdwn', text: answer } }], answer, threadTs)
+      console.log(`[assistant] replied in ${Date.now() - t0}ms, slack ok=${res.ok}`)
     } catch (err) {
       console.error('[assistant] failed', err)
       await postMessage([{ type: 'section', text: { type: 'mrkdwn', text: `Sorry, I hit an error answering that.` } }], 'error', threadTs)
