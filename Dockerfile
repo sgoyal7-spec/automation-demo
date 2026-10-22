@@ -14,8 +14,8 @@ WORKDIR /app
 ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0
 # The image's built-in `node` user is uid 1000, matching the host user that owns the bind-mounted ./data directory.
 RUN mkdir -p /app/data && chown node:node /app/data
-COPY --from=build /app/.next/standalone ./
-COPY --from=build /app/.next/static ./.next/static
+COPY --from=build --chown=node:node /app/.next/standalone ./
+COPY --from=build --chown=node:node /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
 COPY --from=build /app/seed/demo.db ./seed/demo.db
 COPY deploy/entrypoint.sh ./entrypoint.sh
