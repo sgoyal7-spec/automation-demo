@@ -1,4 +1,6 @@
 export const config = {
+  /** White-label name of the Slack assistant. Shown in prompts and replies. */
+  assistantName: process.env.ASSISTANT_NAME ?? 'Samantha',
   appUrl: process.env.APP_URL ?? 'http://localhost:3000',
   slack: {
     botToken: process.env.SLACK_BOT_TOKEN ?? '',

@@ -13,6 +13,7 @@ Built as a technical demo. All prospect data is invented. Nothing here connects 
 | 3 | Meeting booked | "Book meeting" button in Slack | Lead marked BOOKED, discovery-call task created, meeting prep brief posted in the thread. |
 | 4 | Overdue escalation | Scheduler (every 60s) | Leads awaiting a human reply past the SLA get an escalation message. |
 | 5 | Daily digest | Scheduler / on demand | Replies, positive responses, bookings and overdue counts, broken down by account manager. |
+| 6 | Slack assistant ("@Samantha") | `@Samantha <question>` in the channel | A tool-using Claude agent answers from the CRM: who replied, meetings today, overdue follow-ups, and can book meetings for prospects who agreed to meet. Replies in the thread. Name is configurable (`ASSISTANT_NAME`). |
 
 ## Code map
 
@@ -20,8 +21,9 @@ Built as a technical demo. All prospect data is invented. Nothing here connects 
 src/lib/ai.ts          Bedrock classification + keyword fallback
 src/lib/slack.ts       Block Kit builders, chat.postMessage, signature verification
 src/lib/workflows.ts   The five workflows (the "automation engine")
+src/lib/agent.ts       Slack assistant: Bedrock tool-use loop over five CRM tools
 src/instrumentation.ts In-process scheduler
-src/app/api/*          HTTP entry points: replies, Slack interactions, jobs, reset
+src/app/api/*          HTTP entry points: replies, Slack interactions, Slack events (assistant), jobs, reset
 src/app/page.tsx       Simulated LinkedIn inbox (demo operator UI)
 src/app/crm/page.tsx   CRM table with history and open tasks
 prisma/schema.prisma   Prospect, Lead, Interaction, Task
@@ -50,7 +52,8 @@ Without Slack credentials the app logs the messages it would have sent instead o
 3. OAuth & Permissions → add bot scope `chat:write`. Install to workspace. Copy the bot token into `SLACK_BOT_TOKEN`.
 4. Basic Information → copy the Signing Secret into `SLACK_SIGNING_SECRET`.
 5. Interactivity & Shortcuts → On → Request URL `https://<your-domain>/api/slack/interactions`.
-6. Invite the bot to the channel (`/invite @YourApp`) and put the channel ID in `SLACK_CHANNEL_ID`.
+6. For the assistant: **Event Subscriptions** → On → Request URL `https://<your-domain>/api/slack/events` → Subscribe to bot event `app_mention`. Add bot scope `app_mentions:read`. Reinstall the app. Set the bot display name under **App Home** (e.g. Samantha).
+7. Invite the bot to the channel (`/invite @YourApp`) and put the channel ID in `SLACK_CHANNEL_ID`.
 
 ## Deploy on one EC2 host
 

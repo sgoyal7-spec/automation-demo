@@ -70,8 +70,8 @@ export async function handleProspectReply(prospectId: string, replyText: string)
   return { lead, analysis }
 }
 
-export async function bookMeeting(leadId: string, actor: string) {
-  const when = nextBusinessSlot()
+export async function bookMeeting(leadId: string, actor: string, at?: Date) {
+  const when = at && !Number.isNaN(at.getTime()) ? at : nextBusinessSlot()
   const lead = await db.lead.update({
     where: { id: leadId },
     data: { status: 'BOOKED', lastTouchAt: new Date(), escalatedAt: null },
@@ -153,4 +153,4 @@ function nextBusinessSlot() {
   d.setHours(14, 0, 0, 0)
   return d
 }
-const formatWhen = (d: Date) => d.toLocaleString('en-US', { weekday: 'long', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })
+export const formatWhen = (d: Date) => d.toLocaleString('en-US', { weekday: 'long', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })
