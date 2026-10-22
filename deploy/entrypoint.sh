@@ -1,9 +1,8 @@
 #!/bin/sh
-# Apply schema and seed prospects on first boot, then start the server.
+# Copy the pre-seeded database into the persistent volume on first boot, then start.
 set -e
 if [ ! -f /app/data/demo.db ]; then
-  echo "[entrypoint] creating database"
-  node node_modules/prisma/build/index.js db push --skip-generate
-  node node_modules/tsx/dist/cli.mjs prisma/seed.ts
+  echo "[entrypoint] initializing database from seed"
+  cp /app/seed/demo.db /app/data/demo.db
 fi
 exec node server.js

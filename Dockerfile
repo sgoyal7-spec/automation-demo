@@ -1,15 +1,13 @@
-FROM node:22-alpine AS deps
+FROM node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY prisma ./prisma
-RUN npm ci && npx prisma generate
-
-FROM node:22-alpine AS build
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+RUN npm ci
 COPY . .
-ENV DATABASE_URL="file:./data/demo.db"
-RUN npx prisma generate && npm run build
+# Build the app and a pre-seeded template database. The entrypoint copies the
+# template into the data volume on first boot, so the runtime image needs no Prisma CLI.
+ENV DATABASE_URL="file:/app/seed/demo.db"
+RUN mkdir -p /app/seed && npx prisma generate && npx prisma db push --skip-generate && npx tsx prisma/seed.ts && npm run build
 
 FROM node:22-alpine AS runner
 WORKDIR /app
@@ -18,13 +16,7 @@ RUN addgroup -S app && adduser -S app -G app && mkdir -p /app/data && chown app:
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
-COPY --from=build /app/prisma ./prisma
-COPY --from=build /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
-COPY --from=build /app/node_modules/prisma ./node_modules/prisma
-COPY --from=build /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=build /app/node_modules/tsx ./node_modules/tsx
-COPY --from=build /app/src/lib/seed-data.ts ./src/lib/seed-data.ts
+COPY --from=build /app/seed/demo.db ./seed/demo.db
 COPY deploy/entrypoint.sh ./entrypoint.sh
 USER app
 EXPOSE 3000
