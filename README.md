@@ -54,17 +54,16 @@ Without Slack credentials the app logs the messages it would have sent instead o
 
 ## Deploy on one EC2 host
 
-1. Launch a `t4g.small` (Amazon Linux 2023, arm64) with `deploy/ec2-userdata.sh` as user data, an Elastic IP, and security group ports 22/80/443.
+No domain is required. The host is reached through [sslip.io](https://sslip.io), a public DNS service that resolves `A-B-C-D.sslip.io` to the IP `A.B.C.D`, and Caddy obtains a real Let's Encrypt certificate for that hostname.
+
+1. Launch a `t4g.small` (Amazon Linux 2023, arm64) with `deploy/ec2-userdata.sh` as user data, an Elastic IP, and a security group allowing 80 and 443 from anywhere and 22 from your IP.
 2. Attach an instance role with `deploy/iam-bedrock-policy.json`. That is the only AWS permission the app needs.
-3. Point your domain's A record at the Elastic IP.
-4. SSH in:
+3. Create `/opt/automation-demo/.env` on the host from `.env.example`, with `APP_URL=https://<ip-with-dashes>.sslip.io` and `DOMAIN=<ip-with-dashes>.sslip.io`.
+4. From your machine:
    ```bash
-   cd /opt/automation-demo
-   cp .env.example .env && nano .env     # Slack values, APP_URL=https://<domain>
-   echo "DOMAIN=<domain>" >> .env
-   docker compose up -d --build
+   deploy/push.sh <elastic-ip>        # copies the source and runs docker compose up -d --build
    ```
-   Caddy obtains the TLS certificate automatically.
+5. To change Slack settings later, edit `.env` on the host and run `docker compose up -d` in `/opt/automation-demo`.
 
 ## Demo script
 
