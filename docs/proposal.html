@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Automation Demo Proposal - Outbound Consulting</title>
+<style>
+  :root { --ink:#1f2430; --muted:#5b6475; --accent:#2b6cb0; --bg:#f7f8fa; --card:#fff; --line:#e3e6ec; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color:var(--ink); background:var(--bg); line-height:1.55; }
+  main { max-width: 860px; margin: 40px auto; padding: 0 24px 60px; }
+  header { border-bottom: 3px solid var(--accent); padding-bottom: 16px; margin-bottom: 32px; }
+  h1 { margin: 0 0 6px; font-size: 28px; }
+  .sub { color: var(--muted); font-size: 15px; }
+  h2 { font-size: 20px; margin: 36px 0 12px; color: var(--accent); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 18px 22px; margin: 14px 0; }
+  .tldr { border-left: 5px solid var(--accent); }
+  ul, ol { padding-left: 22px; } li { margin: 6px 0; }
+  table { width:100%; border-collapse: collapse; margin: 12px 0; background: var(--card); }
+  th, td { text-align:left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background:#eef2f7; font-weight:600; }
+  code { background:#eef2f7; padding: 1px 6px; border-radius: 4px; font-size: 90%; }
+  .bad { color:#b03030; font-weight:600; } .good { color:#1f7a3a; font-weight:600; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Automation Demo Proposal</h1>
+  <div class="sub">Standalone technical demo for Outbound Consulting &middot; Prepared October 22, 2026</div>
+</header>
+
+<div class="card tldr">
+  <strong>Recommendation in one line:</strong> build a small standalone TypeScript app (Slack + mini CRM + AI reply handling) and run it on one small EC2 host in the existing AWS account, fully separated from the Exydio stacks.
+</div>
+
+<h2>1. Goal and constraints</h2>
+<div class="card">
+  <ul>
+    <li>Show Outbound Consulting a live, interactive automation and let them review the code.</li>
+    <li>Share <span class="bad">nothing proprietary</span>: no Exydio database, AI agents, CRM, dialer, or shared packages.</li>
+    <li>Separate codebase, separate deployment, separate Slack workspace.</li>
+    <li>Ready by 6 AM Eastern tomorrow. Roughly 12 hours of build time.</li>
+  </ul>
+</div>
+
+<h2>2. What to build</h2>
+<div class="card">
+  <p><strong>Stack:</strong> Next.js, SQLite via Prisma, Slack Block Kit, Amazon Bedrock (Claude) for the AI step. Roughly 600 to 1,000 lines. Same stack family as Exydio, so the code reads like how the team works without sharing any of it.</p>
+  <ol>
+    <li><strong>Simulated LinkedIn inbox.</strong> Click a canned prospect reply such as "Yes, send me times." Claude classifies it as interested, objection, meeting request, or not now. The app writes a lead record and posts a Slack message with a suggested reply and two action buttons.</li>
+    <li><strong>Two-way Slack.</strong> The "Book meeting" button marks the lead booked and posts a meeting prep brief back to the channel. This proves interactivity, not just a webhook.</li>
+    <li><strong>Scheduled jobs.</strong> A timer flags leads with no touch within N minutes and posts an escalation, plus a daily activity digest. N is set short for the live demo.</li>
+    <li><strong>Mini CRM page.</strong> A plain table of leads with status, owner, and interaction history ties everything together.</li>
+  </ol>
+  <p>This covers five of the seven workflows Manny listed with a single data model.</p>
+</div>
+
+<h2>3. Use cases we will demo</h2>
+<table>
+  <tr><th style="width:36px">#</th><th style="width:230px">Use case</th><th>What the client sees</th><th style="width:200px">Demonstrates</th></tr>
+  <tr><td>1</td><td><strong>Prospect reply with AI qualification</strong></td><td>Click a canned LinkedIn reply such as "Yes, send me times." Claude classifies it as interested, objection, meeting request, or not now, and drafts a suggested response. A lead record is created in the CRM.</td><td>AI integration, structured output, conditional logic, database writes</td></tr>
+  <tr><td>2</td><td><strong>Instant Slack notification</strong></td><td>The same event posts a Block Kit message to the account manager channel with prospect details, classification, suggested reply, and action buttons.</td><td>Webhooks, Slack API, event processing</td></tr>
+  <tr><td>3</td><td><strong>Meeting booked with prep brief</strong></td><td>Clicking "Book meeting" in Slack flips the CRM status to booked and posts a prep brief back with company background and a short checklist.</td><td>Two-way Slack interactivity, data transformation</td></tr>
+  <tr><td>4</td><td><strong>Missed follow-up escalation</strong></td><td>A scheduled job finds interested leads with no touch within N minutes and posts an escalation. N is set to a couple of minutes so it fires during the call.</td><td>Scheduled jobs, business rules, escalation logic</td></tr>
+  <tr><td>5</td><td><strong>Daily account manager summary</strong></td><td>A report compiles replies, positive responses, booked meetings, and overdue follow-ups into one Slack digest. Triggered on demand for the demo.</td><td>Reporting queries, aggregation, scheduled automation</td></tr>
+</table>
+<div class="card">
+  <strong>Deferred from Manny's original list:</strong> the voice agent call summary and the standalone email reply flow. Both are feasible later but add integrations that do not fit tonight's timeline.
+</div>
+
+<h2>4. Infrastructure</h2>
+<div class="card">
+  <p>Serverless does not provide a static IP, so we pick one approach. For a live demo built in 12 hours, the single host is lower risk.</p>
+  <ul>
+    <li><strong>One t4g.small EC2</strong> in us-west-2 with an Elastic IP, Docker Compose, and Caddy for automatic TLS. Under $15 per month. One SSH session to debug, no cold starts.</li>
+    <li>Point one of Manny's GoDaddy domains at the Elastic IP. Share the URL with the client, not the IP.</li>
+    <li>Instance IAM role scoped only to Bedrock InvokeModel. No VPC peering and no access to Exydio RDS, ElastiCache, or secrets.</li>
+    <li>Deployed by a short shell script or a tiny separate Pulumi project. Never from the Exydio Pulumi stacks or CodeBuild pipelines.</li>
+    <li>Serverless option for later: the same app ports to Lambda with a Function URL and DynamoDB if the client wants that story.</li>
+  </ul>
+</div>
+
+<h2>5. Protecting Exydio IP</h2>
+<div class="card">
+  <ul>
+    <li>New git repository. No imports from Exydio packages, no shared environment files or secrets.</li>
+    <li>Fresh free Slack workspace used only for the demo.</li>
+    <li>Bedrock keeps model calls inside the AWS account, so no new third-party API key to hand around.</li>
+    <li>Share the code as a private repo with temporary read access, or release it under MIT since nothing in it is proprietary.</li>
+  </ul>
+</div>
+
+<h2>6. Build plan for today</h2>
+<table>
+  <tr><th style="width:110px">Time</th><th>Work</th></tr>
+  <tr><td>2 hrs</td><td>Scaffold app, schema, seeded fake prospects, simulated inbox page</td></tr>
+  <tr><td>2 hrs</td><td>Slack app, outgoing messages, interactive button handler</td></tr>
+  <tr><td>1.5 hrs</td><td>Bedrock classification and suggested reply</td></tr>
+  <tr><td>1 hr</td><td>Scheduler for escalation and daily digest</td></tr>
+  <tr><td>1.5 hrs</td><td>EC2, Caddy, DNS, end-to-end smoke test from a phone</td></tr>
+</table>
+
+<h2>7. Demo script for the call</h2>
+<div class="card">
+  <ol>
+    <li>Open the demo site, show the prospect inbox and the empty CRM.</li>
+    <li>Click a positive reply. Slack lights up with the classification and suggested response. CRM shows the new lead.</li>
+    <li>Click "Book meeting" in Slack. Prep brief appears, CRM status flips to booked.</li>
+    <li>Click an objection reply. Show the different classification and suggested handling.</li>
+    <li>Wait for the escalation timer to fire on an untouched lead.</li>
+    <li>Walk through the repo: one data model, one Slack module, one AI module, one scheduler.</li>
+  </ol>
+</div>
+
+<footer>Internal proposal. Exydio engineering.</footer>
+</main>
+</body>
+</html>

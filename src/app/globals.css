@@ -1,0 +1,31 @@
+:root { --ink:#1f2430; --muted:#5b6475; --accent:#2b6cb0; --bg:#f4f6f9; --card:#fff; --line:#e3e6ec; --ok:#1f7a3a; --warn:#b7791f; --bad:#b03030; }
+* { box-sizing:border-box; }
+body { margin:0; font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:var(--ink); background:var(--bg); line-height:1.5; }
+a { color:var(--accent); text-decoration:none; }
+nav { background:#fff; border-bottom:1px solid var(--line); padding:12px 24px; display:flex; gap:20px; align-items:center; }
+nav .brand { font-weight:700; margin-right:auto; }
+nav .demo { font-size:12px; background:#fff3cd; color:#7a5a00; padding:2px 8px; border-radius:10px; }
+main { max-width:1000px; margin:28px auto; padding:0 24px 60px; }
+h1 { font-size:24px; margin:0 0 6px; } .sub { color:var(--muted); margin-bottom:20px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:16px 20px; margin:12px 0; }
+.row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+.grow { flex:1; }
+.muted { color:var(--muted); font-size:13px; }
+button, .btn { font:inherit; font-size:14px; padding:7px 12px; border-radius:6px; border:1px solid var(--line); background:#fff; cursor:pointer; }
+button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+button.danger { color:var(--bad); }
+button:disabled { opacity:.5; cursor:default; }
+textarea { width:100%; font:inherit; padding:8px; border:1px solid var(--line); border-radius:6px; min-height:70px; }
+table { width:100%; border-collapse:collapse; background:#fff; }
+th, td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; font-size:14px; }
+th { background:#eef2f7; font-weight:600; }
+.pill { display:inline-block; padding:2px 9px; border-radius:10px; font-size:12px; font-weight:600; background:#e8edf5; }
+.pill.INTERESTED, .pill.BOOKED { background:#dff3e4; color:var(--ok); }
+.pill.MEETING_REQUESTED { background:#dbe9ff; color:var(--accent); }
+.pill.OBJECTION { background:#fff0d6; color:var(--warn); }
+.pill.NOT_NOW { background:#eee; color:var(--muted); }
+.overdue { color:var(--bad); font-weight:600; }
+.stars { color:#d69e2e; letter-spacing:1px; }
+.result { background:#f0f6ff; border-left:4px solid var(--accent); padding:10px 14px; margin-top:10px; font-size:14px; white-space:pre-wrap; }
+.timeline li { margin:4px 0; font-size:13px; } .timeline .ch { display:inline-block; width:70px; color:var(--muted); }
+details summary { cursor:pointer; color:var(--accent); font-size:13px; }

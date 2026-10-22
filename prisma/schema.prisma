@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// A person we reached out to on LinkedIn. Seeded fake data for the demo.
+model Prospect {
+  id             String   @id @default(cuid())
+  name           String
+  title          String
+  company        String
+  companySummary String
+  linkedinUrl    String
+  ownerName      String   // account manager assigned to this prospect
+  lead           Lead?
+  createdAt      DateTime @default(now())
+}
+
+/// A prospect becomes a lead the moment they reply.
+model Lead {
+  id             String        @id @default(cuid())
+  prospect       Prospect      @relation(fields: [prospectId], references: [id])
+  prospectId     String        @unique
+  status         String        // NEW | INTERESTED | OBJECTION | MEETING_REQUESTED | BOOKED | NOT_NOW
+  interestLevel  Int           @default(0) // 1-5
+  summary        String        @default("")
+  suggestedReply String        @default("")
+  nextAction     String        @default("")
+  slackTs        String?       // thread timestamp of the Slack alert
+  lastTouchAt    DateTime      @default(now())
+  escalatedAt    DateTime?
+  interactions   Interaction[]
+  tasks          Task[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Interaction {
+  id        String   @id @default(cuid())
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  leadId    String
+  channel   String   // LINKEDIN | SLACK | AI | SYSTEM
+  direction String   // IN | OUT
+  text      String
+  createdAt DateTime @default(now())
+}
+
+model Task {
+  id        String    @id @default(cuid())
+  lead      Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  leadId    String
+  title     String
+  owner     String
+  dueAt     DateTime
+  doneAt    DateTime?
+  createdAt DateTime  @default(now())
+}
