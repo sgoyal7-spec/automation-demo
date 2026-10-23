@@ -43,17 +43,15 @@ Without Slack credentials the app logs the messages it would have sent instead o
 
 ## Slack setup
 
-**Quick mode (2 minutes, alerts only):** in the channel, open *Integrations → Add an app → Incoming WebHooks → Add to Slack*, pick the channel, and put the webhook URL in `SLACK_WEBHOOK_URL`. Buttons are hidden in this mode because a webhook cannot receive clicks.
+**Fastest (any workspace, about 3 minutes):**
 
-**Full mode (10 minutes, buttons + thread updates):**
+1. https://api.slack.com/apps → **Create New App** → **From a manifest** → pick the workspace → paste `deploy/slack-manifest.yaml` (YAML tab) → Create. The server must already be reachable at the URLs in the manifest because Slack verifies them.
+2. **Install to Workspace** → Allow. Copy the **Bot User OAuth Token** (`SLACK_BOT_TOKEN`).
+3. **Basic Information** → App Credentials → **Signing Secret** (`SLACK_SIGNING_SECRET`).
+4. Create a channel, open its details, copy the **Channel ID** from the bottom of the About tab (`SLACK_CHANNEL_ID`), and `/invite @Samantha`.
+5. Put the three values in `.env` on the host and run `docker compose up -d`.
 
-1. Create a free Slack workspace and a channel, e.g. `#sales-alerts`.
-2. api.slack.com/apps → Create New App → From scratch.
-3. OAuth & Permissions → add bot scope `chat:write`. Install to workspace. Copy the bot token into `SLACK_BOT_TOKEN`.
-4. Basic Information → copy the Signing Secret into `SLACK_SIGNING_SECRET`.
-5. Interactivity & Shortcuts → On → Request URL `https://<your-domain>/api/slack/interactions`.
-6. For the assistant: **Event Subscriptions** → On → Request URL `https://<your-domain>/api/slack/events` → Subscribe to bot event `app_mention`. Add bot scope `app_mentions:read`. Reinstall the app. Set the bot display name under **App Home** (e.g. Samantha).
-7. Invite the bot to the channel (`/invite @YourApp`) and put the channel ID in `SLACK_CHANNEL_ID`.
+**Alert-only fallback:** an Incoming Webhook for the channel in `SLACK_WEBHOOK_URL`. One-way, no buttons, no assistant.
 
 ## Deploy on one EC2 host
 

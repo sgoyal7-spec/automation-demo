@@ -1,0 +1,26 @@
+# Slack app manifest. Create the app with: https://api.slack.com/apps -> Create New App -> From a manifest.
+# Replace the host if the deployment URL changes. Socket Mode is intentionally off.
+display_information:
+  name: Samantha
+  description: Sales operations assistant for the outreach team
+  background_color: "#2b6cb0"
+features:
+  bot_user:
+    display_name: Samantha
+    always_online: true
+oauth_config:
+  scopes:
+    bot:
+      - chat:write
+      - app_mentions:read
+settings:
+  event_subscriptions:
+    request_url: https://52-10-9-94.sslip.io/api/slack/events
+    bot_events:
+      - app_mention
+  interactivity:
+    is_enabled: true
+    request_url: https://52-10-9-94.sslip.io/api/slack/interactions
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false
